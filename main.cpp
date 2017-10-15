@@ -16,7 +16,9 @@ void watcher(zhandle_t* handler, int type, int state, const char* path, void* wa
 int main(int argc, char* argv[]) {
     google::InitGoogleLogging(argv[0]);
     google::SetStderrLogging(google::GLOG_INFO);
-    google::SetLogDestination(google::GLOG_INFO, "/Users/lizhanhui/logs/zk_");
+
+    const char* user_home = getenv("HOME");
+    google::SetLogDestination(google::GLOG_INFO, string(user_home).append("/logs/zk_").c_str());
 
     zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames");
 

@@ -2,12 +2,24 @@
 #define ZOOKEEPER_BROKERNAMEALLOCATOR_H
 
 #include <string>
+#include <unordered_set>
 #include <zookeeper/zookeeper.h>
+#include <glog/logging.h>
+#include <thread>
+
+#include "ZKPaths.h"
+#include "InetAddr.h"
 
 namespace zk {
     class BrokerNameAllocator {
     public:
-        BrokerNameAllocator(const std::string& prefix, zhandle_t* handler) : prefix(prefix), handler(handler) {
+        BrokerNameAllocator(const std::string& broker_name_prefix, const std::string &lock_prefix, zhandle_t* handler)
+                : broker_name_prefix(broker_name_prefix), lock_prefix(lock_prefix), handler(handler) {
+            lock();
+        }
+
+        ~BrokerNameAllocator() {
+            unlock();
         }
 
         std::string lookup(const std::string& ip);
@@ -17,7 +29,13 @@ namespace zk {
         bool release(const std::string& broker_name, const std::string& ip);
 
     private:
-        const std::string& prefix;
+        void lock();
+
+        void unlock();
+
+    private:
+        const std::string& broker_name_prefix;
+        const std::string& lock_prefix;
         zhandle_t* handler;
     };
 }

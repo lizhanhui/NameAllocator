@@ -2,6 +2,23 @@
 
 namespace zk {
 
+    bool ZKPaths::mkdir(zhandle_t *handler, const std::string &path, const std::string& data) {
+        if (exists(handler, path)) {
+            return false;
+        }
+
+        int BUFFER_SIZE = 1024;
+        char buf[BUFFER_SIZE];
+        const char* pData = data.c_str();
+        int status = zoo_create(handler, path.c_str(), pData, strlen(pData), &ZOO_OPEN_ACL_UNSAFE, 0, buf,
+                                sizeof(buf) - 1);
+        return status == ZOK;
+    }
+
+    bool ZKPaths::rm(zhandle_t *handler, const std::string &path) {
+        return ZOK == zoo_delete(handler, path.c_str(), -1);
+    }
+
     void ZKPaths::mkdirs(zhandle_t *handler, const std::string &path) {
         struct Stat stat;
         int rc = zoo_exists(handler, path.c_str(), 0, &stat);
@@ -32,7 +49,9 @@ namespace zk {
     }
 
     bool ZKPaths::exists(zhandle_t *handler, const std::string &path) {
-        return ZOK == zoo_exists(handler, path.c_str(), 0, nullptr);
+        struct Stat stat;
+        int status = zoo_exists(handler, path.c_str(), 0, &stat);
+        return status == ZOK;
     }
 
     std::unordered_set<std::string> ZKPaths::children(zhandle_t *handler, const std::string &path) {

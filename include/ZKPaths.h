@@ -10,6 +10,9 @@
 namespace zk {
     class ZKPaths {
     public:
+        static bool mkdir(zhandle_t *handler, const std::string &path, const std::string& data);
+
+        static bool rm(zhandle_t *handler, const std::string &path);
 
         static void mkdirs(zhandle_t *handler, const std::string& path);
 
@@ -18,6 +21,7 @@ namespace zk {
         static std::unordered_set<std::string> children(zhandle_t *handler, const std::string& path);
 
         static const std::string get(zhandle_t* handler, const std::string& path);
+
 
     private:
     };

@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     zk::ZKPaths::mkdirs(zh, "/mq/brokerNames/broker-a/a");
 
 
-    zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames", zh);
+    zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames", "/mq", zh);
 
 
     std::string ip = zk::InetAddr::localhost();

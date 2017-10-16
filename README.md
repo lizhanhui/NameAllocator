@@ -10,8 +10,10 @@ This project is to allocate broker name conforming to specified patterns.
 1. In the main source folder, execute the following commands to build
 
     ```sh
+    
         mkdir build
         cd build
         cmake ..
         make
+        
     ```

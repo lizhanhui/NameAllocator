@@ -2,12 +2,15 @@
 #define ZOOKEEPER_BROKERNAMEALLOCATOR_H
 
 #include <string>
+#include <zookeeper/zookeeper.h>
 
 namespace zk {
     class BrokerNameAllocator {
     public:
-        BrokerNameAllocator(const std::string& prefix) : prefix(prefix) {
+        BrokerNameAllocator(const std::string& prefix, zhandle_t* handler) : prefix(prefix), handler(handler) {
         }
+
+        std::string lookup(const std::string& ip);
 
         std::string acquire(const std::string &ip, int span);
 
@@ -15,6 +18,7 @@ namespace zk {
 
     private:
         const std::string& prefix;
+        zhandle_t* handler;
     };
 }
 

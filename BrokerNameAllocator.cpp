@@ -13,6 +13,7 @@ namespace zk {
             LOG(ERROR) << "Unable to acquire lock. Sleep for 1 second";
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+        LOG(INFO) << "Lock acquired OK";
     }
 
 
@@ -25,6 +26,7 @@ namespace zk {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         }
+        LOG(INFO) << "Lock released OK";
     }
 
     std::string BrokerNameAllocator::lookup(const std::string &ip) {

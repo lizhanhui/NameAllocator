@@ -33,10 +33,13 @@ namespace zk {
         std::unordered_set<std::string> broker_name_set = ZKPaths::children(handler, broker_name_prefix);
         if (!broker_name_set.empty()) {
             for (const std::string &broker_name : broker_name_set) {
-                std::string name_node = broker_name_prefix + "/" + broker_name;
-                std::unordered_set<std::string> ip_set = ZKPaths::children(handler, name_node);
+                std::string name_node_path(broker_name_prefix);
+                name_node_path.append("/").append(broker_name);
+                std::unordered_set<std::string> ip_set = ZKPaths::children(handler, name_node_path);
                 for (const std::string &ip_node : ip_set) {
-                    if (ip == ZKPaths::get(handler, name_node + "/" + ip_node)) {
+                    std::string ip_node_path(name_node_path);
+                    ip_node_path.append("/").append(ip_node);
+                    if (ip == ZKPaths::get(handler, ip_node_path)) {
                         return broker_name;
                     }
                 }
@@ -47,10 +50,63 @@ namespace zk {
     }
 
     std::string BrokerNameAllocator::acquire(const std::string &ip, int span) {
-        return "OK";
+        std::string broker_name;
+        bool exists = true;
+        try {
+            broker_name = lookup(ip);
+        } catch (int status) {
+            if (-1 == status) {
+                exists = false;
+            }
+        }
+
+        bool create = true;
+        int index = 0;
+        if (!exists) {
+            std::unordered_set<std::string> broker_name_set = ZKPaths::children(handler, broker_name_prefix);
+            if (!broker_name_set.empty()) {
+                for (const std::string &broker_name_it : broker_name_set) {
+                    std::string name_node = broker_name_prefix + "/" + broker_name_it;
+                    std::unordered_set<std::string> ip_set = ZKPaths::children(handler, name_node);
+                    if (ip_set.size() < span) {
+                        create = false;
+                        std::string ip_node_path(name_node);
+                        ip_node_path.append("/").append(ip);
+                        ZKPaths::mkdir(handler, ip_node_path, ip);
+                        broker_name = broker_name_it;
+                        break;
+                    }
+
+                    std::string::size_type pos = broker_name_it.find('-');
+                    int ordinal = std::stoi(broker_name_it.substr(pos + 1));
+                    if (index < ordinal) {
+                        index = ordinal;
+                    }
+                }
+            }
+        }
+
+        if (create) {
+            broker_name.clear();
+            broker_name.append("broker-").append(std::to_string(++index));
+            std::string ip_node_path(broker_name_prefix);
+            ip_node_path.append("/").append(broker_name).append("/").append(ip);
+            ZKPaths::mkdirs(handler, ip_node_path);
+            ZKPaths::set(handler, ip_node_path, ip);
+        }
+
+        return broker_name;
     }
 
     bool BrokerNameAllocator::release(const std::string &broker_name, const std::string &ip) {
-        return true;
+        std::string ip_node_path(broker_name_prefix);
+        ip_node_path.append("/").append(broker_name).append("/").append(ip);
+        if (ZKPaths::exists(handler, ip_node_path)) {
+            LOG(INFO) << "IP node to delete: " << ip_node_path;
+            return ZKPaths::rm(handler, ip_node_path);
+        }
+
+        LOG(ERROR) << "IP node specified is not existing";
+        return false;
     }
 }

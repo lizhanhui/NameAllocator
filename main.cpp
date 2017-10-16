@@ -41,55 +41,25 @@ int main(int argc, char* argv[]) {
         return errno;
     }
 
-    const char* path = "/xyz";
-    const char* value = "value";
-
-    std::cout << zk::ZKPaths::get(zh, string(path)) << std::endl;
-
-    unordered_set<string> children = zk::ZKPaths::children(zh, string(path));
-    for (auto next = children.begin(); next != children.end(); next++) {
-        std::cout << *next << std::endl;
-    }
-
-    const char *non_existing_path = "/xyz/abc";
-
-    zk::ZKPaths::mkdirs(zh, non_existing_path);
-
-    zoo_set(zh, path, value, strlen(value), 0);
-
-    std::cout << zk::ZKPaths::exists(zh, path) << std::endl;
-
-    int rc = zoo_create(zh, path, value, strlen(value), &ZOO_OPEN_ACL_UNSAFE, 0, buffer, sizeof(buffer) - 1);
-
-    if (rc) {
-        cerr << "Failed to create ephemeral node. Error Code: " << rc << endl;
-    } else {
-        cout << "Node created" << endl;
-    }
-
-    int buffer_length = sizeof(buffer);
-    struct Stat stat;
-    rc = zoo_get(zh, path, 0, buffer, &buffer_length, &stat);
-
-    if (rc) {
-        fprintf(stderr, "Error Code: %d\n", rc);
-    } else {
-        fprintf(stdout, "Value: %s\n", buffer);
-        cout << "Children Number: " << stat.numChildren << endl;
-    }
-
-    std::string node_path = "/mq/brokerNames/broker-a/a";
-    zk::ZKPaths::mkdirs(zh, node_path);
     std::string ip = zk::InetAddr::localhost();
-    zk::ZKPaths::set(zh, node_path, ip);
-
     zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames", "/mq", zh);
 
 
     std::cout << "BrokerName of local host: " << brokerNameAllocator.lookup(ip) << endl;
     std::string brokerName = brokerNameAllocator.acquire(ip, 2);
-
     std::cout << "Broker IP: " << ip << ", Broker Name: " << brokerName << std::endl;
+
+    std::string ip2 = "127.0.0.1";
+    std::string brokerName2 = brokerNameAllocator.acquire(ip2, 2);
+    std::cout << "Broker IP2: " << ip2 << ", Broker Name: " << brokerName2 << std::endl;
+
+    std::string ip3 = "127.0.0.2";
+    std::string brokerName3 = brokerNameAllocator.acquire(ip3, 2);
+    std::cout << "Broker IP2: " << ip3 << ", Broker Name: " << brokerName3 << std::endl;
+
+    std::string ip4 = "127.0.0.3";
+    std::string brokerName4 = brokerNameAllocator.acquire(ip4, 2);
+    std::cout << "Broker IP2: " << ip4 << ", Broker Name: " << brokerName4 << std::endl;
 
 
     google::ShutdownGoogleLogging();

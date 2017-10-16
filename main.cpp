@@ -78,20 +78,20 @@ int main(int argc, char* argv[]) {
         cout << "Children Number: " << stat.numChildren << endl;
     }
 
-    zk::ZKPaths::mkdirs(zh, "/mq/brokerNames/broker-a/a");
-
+    std::string node_path = "/mq/brokerNames/broker-a/a";
+    zk::ZKPaths::mkdirs(zh, node_path);
+    std::string ip = zk::InetAddr::localhost();
+    zk::ZKPaths::set(zh, node_path, ip);
 
     zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames", "/mq", zh);
 
 
-    std::string ip = zk::InetAddr::localhost();
     std::cout << "BrokerName of local host: " << brokerNameAllocator.lookup(ip) << endl;
     std::string brokerName = brokerNameAllocator.acquire(ip, 2);
 
     std::cout << "Broker IP: " << ip << ", Broker Name: " << brokerName << std::endl;
 
 
-    zookeeper_close(zh);
     google::ShutdownGoogleLogging();
 
     return 0;

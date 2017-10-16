@@ -20,6 +20,7 @@ namespace zk {
 
         ~BrokerNameAllocator() {
             unlock();
+            zookeeper_close(handler);
         }
 
         std::string lookup(const std::string& ip);

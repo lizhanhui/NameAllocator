@@ -104,4 +104,13 @@ namespace zk {
         throw status;
     }
 
+    bool ZKPaths::set(zhandle_t *handler, const std::string &path, const std::string &data) {
+        int status = zoo_set(handler, path.c_str(), data.c_str(), data.size(), -1);
+        if (ZOK == status) {
+            return true;
+        }
+        LOG(ERROR) << "Failed to set data for path: " << path;
+        return false;
+    }
+
 }

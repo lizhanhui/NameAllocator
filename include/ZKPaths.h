@@ -22,6 +22,7 @@ namespace zk {
 
         static const std::string get(zhandle_t* handler, const std::string& path);
 
+        static bool set(zhandle_t *handler, const std::string &path, const std::string &data);
 
     private:
     };

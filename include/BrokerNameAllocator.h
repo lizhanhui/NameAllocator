@@ -21,11 +21,7 @@ namespace zk {
             lock();
         }
 
-        ~BrokerNameAllocator() {
-            unlock();
-            zookeeper_close(handler);
-            LOG(INFO) << "ZooKeeper client closed";
-        }
+        ~BrokerNameAllocator();
 
         std::string lookup(const std::string& ip);
 

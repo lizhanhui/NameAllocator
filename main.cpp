@@ -32,13 +32,16 @@ std::vector<std::string> split(const std::string &s, char c) {
 }
 
 std::string build_zk_address() {
-    std::string zk_host_ip_csv(getenv("middleware_zk_hosts"));
-    std::string zk_port(getenv("middleware_zk_port"));
 
-    if (zk_host_ip_csv.empty()) {
-        LOG(WARNING) << "Environmental variable: middleware_zk_hosts is not available";
+    const char* pZkHost = getenv("middleware_zk_hosts");
+    const char* pZkPort = getenv("middleware_zk_port");
+    if (nullptr == pZkHost || nullptr == pZkPort) {
+        LOG(WARNING) << "Environment variable: middleware_zk_hosts or middleware_zk_port is undefined. Using localhost:2181 by default";
         return "localhost:2181";
     }
+
+    std::string zk_host_ip_csv(pZkHost);
+    std::string zk_port(pZkPort);
 
     std::string zk_address;
     std::vector<std::string> segments = split(zk_host_ip_csv, ',');
@@ -56,12 +59,11 @@ std::string build_zk_address() {
 
 int main(int argc, char* argv[]) {
     google::InitGoogleLogging(argv[0]);
-    google::SetStderrLogging(google::GLOG_INFO);
 
     const char* user_home = getenv("HOME");
-    google::SetLogDestination(google::GLOG_INFO, string(user_home).append("/logs/zk_").c_str());
+    google::SetLogDestination(google::GLOG_ERROR, string(user_home).append("/logs/zk_").c_str());
 
-    zoo_set_debug_level(ZOO_LOG_LEVEL_DEBUG);
+    zoo_set_debug_level(ZOO_LOG_LEVEL_ERROR);
     static zhandle_t *zk_client;
     const std::string zk_address = build_zk_address();
     zk_client = zookeeper_init(zk_address.c_str(), watcher, 10000, nullptr, nullptr, 0);
@@ -93,8 +95,6 @@ int main(int argc, char* argv[]) {
     bool okay = false;
     try {
         broker_name = brokerNameAllocator.lookup(ip);
-        // output the registered broker name to stdout in case this application is used in command line.
-        std::cout << broker_name;
         okay = true;
     } catch (int status) {
         LOG(INFO) << "Cannot find broker name record according to IP: " << ip;
@@ -108,10 +108,9 @@ int main(int argc, char* argv[]) {
                 std::string allocated_broker_name = brokerNameAllocator.acquire(ip, span, broker_name);
                 if (allocated_broker_name == broker_name) {
                     LOG(INFO) << "Preferred broker name is accepted and registered to ZooKeeper";
+                } else {
+                    broker_name = allocated_broker_name;
                 }
-
-                // output the registered broker name in case this application is used in command line.
-                std::cout << allocated_broker_name;
                 okay = true;
             }
         }
@@ -119,8 +118,12 @@ int main(int argc, char* argv[]) {
 
     if (!okay) {
         broker_name = brokerNameAllocator.acquire(ip, span, "");
-        std::cout << broker_name;
         okay = true;
+    }
+
+    if (okay) {
+        // output the registered broker name in case this application is used in command line.
+        std::cout << broker_name;
     }
 
     google::ShutdownGoogleLogging();

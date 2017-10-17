@@ -133,4 +133,10 @@ namespace zk {
     bool BrokerNameAllocator::valid(const std::string &broker_name) {
         return std::regex_match(broker_name, broker_name_pattern);
     }
+
+    BrokerNameAllocator::~BrokerNameAllocator() {
+        unlock();
+        zookeeper_close(handler);
+        LOG(INFO) << "ZooKeeper client closed";
+    }
 }

@@ -3,7 +3,8 @@ project(NameAllocator)
 
 set(CMAKE_CXX_STANDARD 11)
 
-if (${CMAKE_SYSTEM} EQUAL "Linux")
+if (${CMAKE_SYSTEM} MATCHES "Linux")
+    message("Building a static-linked executable for Linux platform")
     SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     SET(BUILD_SHARED_LIBRARIES OFF)
     SET(CMAKE_EXE_LINKER_FLAGS "-static")

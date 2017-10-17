@@ -14,6 +14,10 @@ namespace zk {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         LOG(INFO) << "Lock acquired OK";
+
+        if(!ZKPaths::exists(handler, broker_name_prefix)) {
+            ZKPaths::mkdirs(handler, broker_name_prefix);
+        }
     }
 
 

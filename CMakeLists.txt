@@ -12,6 +12,7 @@ set(SOURCE_FILES main.cpp
         BrokerNameAllocator.cpp)
 
 find_package(Glog REQUIRED)
+find_package(gflags REQUIRED)
 
 include_directories(
         /usr/local/include
@@ -22,4 +23,5 @@ add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
 
 target_link_libraries(${CMAKE_PROJECT_NAME}
         zookeeper_mt
-        ${GLOG_LIBRARIES})
+        ${GLOG_LIBRARIES}
+        gflags)

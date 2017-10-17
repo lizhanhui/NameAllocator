@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
     const char* user_home = getenv("HOME");
     google::SetLogDestination(google::GLOG_INFO, string(user_home).append("/logs/zk_").c_str());
 
-    const string s = "/Users/lizhanhui/test.properties";
+    const string s = std::string(user_home) + "/rmq/conf/broker.conf";
     zk::Properties properties;
     properties.load(s);
 

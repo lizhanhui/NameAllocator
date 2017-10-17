@@ -38,6 +38,7 @@ namespace zk {
     private:
         std::unordered_map<std::string, std::string> data;
 
+        static std::string trim(const std::string &s);
     };
 }
 

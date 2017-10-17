@@ -16,7 +16,7 @@ namespace zk {
     public:
         BrokerNameAllocator(const std::string& broker_name_prefix, const std::string &lock_prefix, zhandle_t* handler)
                 : broker_name_prefix(broker_name_prefix), lock_prefix(lock_prefix), handler(handler),
-                  broker_name_pattern("broker-[[:digit:]]+")
+                  broker_name_pattern("broker[[:digit:]]+")
         {
             lock();
         }
@@ -29,9 +29,9 @@ namespace zk {
 
         std::string lookup(const std::string& ip);
 
-        std::string acquire(const std::string &ip, int span);
+        std::string acquire(const std::string &ip, int span, const std::string &prefer_name);
 
-        bool release(const std::string& broker_name, const std::string& ip);
+        bool release(const std::string &broker_name, const std::string &ip);
 
         bool valid(const std::string &broker_name);
 

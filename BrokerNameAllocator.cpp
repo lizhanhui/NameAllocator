@@ -131,7 +131,16 @@ namespace zk {
     }
 
     bool BrokerNameAllocator::valid(const std::string &broker_name) {
-        return std::regex_match(broker_name, broker_name_pattern);
+        std::string prefix = "broker";
+        if (broker_name.find(prefix) == 0) {
+            try {
+                std::stoi(broker_name.substr(prefix.size()));
+                return true;
+            } catch (...) {
+                return false;
+            }
+        }
+        return false;
     }
 
     BrokerNameAllocator::~BrokerNameAllocator() {

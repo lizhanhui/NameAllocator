@@ -6,6 +6,7 @@
 #include <zookeeper/zookeeper.h>
 #include <glog/logging.h>
 #include <thread>
+#include <regex>
 
 #include "ZKPaths.h"
 #include "InetAddr.h"
@@ -14,7 +15,9 @@ namespace zk {
     class BrokerNameAllocator {
     public:
         BrokerNameAllocator(const std::string& broker_name_prefix, const std::string &lock_prefix, zhandle_t* handler)
-                : broker_name_prefix(broker_name_prefix), lock_prefix(lock_prefix), handler(handler) {
+                : broker_name_prefix(broker_name_prefix), lock_prefix(lock_prefix), handler(handler),
+                  broker_name_pattern("broker-[[:digit:]]+")
+        {
             lock();
         }
 
@@ -30,6 +33,8 @@ namespace zk {
 
         bool release(const std::string& broker_name, const std::string& ip);
 
+        bool valid(const std::string &broker_name);
+
     private:
         void lock();
 
@@ -39,6 +44,7 @@ namespace zk {
         const std::string& broker_name_prefix;
         const std::string& lock_prefix;
         zhandle_t* handler;
+        std::regex broker_name_pattern;
     };
 }
 

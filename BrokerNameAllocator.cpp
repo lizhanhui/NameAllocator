@@ -109,4 +109,8 @@ namespace zk {
         LOG(ERROR) << "IP node specified is not existing";
         return false;
     }
+
+    bool BrokerNameAllocator::valid(const std::string &broker_name) {
+        return std::regex_match(broker_name, broker_name_pattern);
+    }
 }

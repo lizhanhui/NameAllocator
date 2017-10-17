@@ -44,6 +44,7 @@ int main(int argc, char* argv[]) {
     std::string ip = zk::InetAddr::localhost();
     zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames", "/mq", zh);
 
+    std::cout << "Valid: " << brokerNameAllocator.valid("broker-a") << std::endl;
 
     std::cout << "BrokerName of local host: " << brokerNameAllocator.lookup(ip) << endl;
     std::string brokerName = brokerNameAllocator.acquire(ip, 2);

@@ -34,20 +34,24 @@ std::vector<std::string> split(const std::string &s, char c) {
 std::string build_zk_address() {
     std::string zk_host_ip_csv(getenv("middleware_zk_hosts"));
     std::string zk_port(getenv("middleware_zk_port"));
+
     if (zk_host_ip_csv.empty()) {
         LOG(WARNING) << "Environmental variable: middleware_zk_hosts is not available";
         return "localhost:2181";
-    } else {
-        std::string zk_address;
-        std::vector<std::string> segments = split(zk_host_ip_csv, ',');
-        for (const std::string &item : segments) {
-            if (!zk_address.empty()) {
-                zk_address.append(1, ',');
-            }
-            zk_address.append(item).append(1, ':').append(zk_port);
-        }
-        return zk_address;
     }
+
+    std::string zk_address;
+    std::vector<std::string> segments = split(zk_host_ip_csv, ',');
+    for (const std::string &item : segments) {
+        if (!zk_address.empty()) {
+            zk_address.append(1, ',');
+        }
+        zk_address.append(item).append(1, ':').append(zk_port);
+    }
+
+    LOG(INFO) << "ZooKeeper addresses:" << zk_address;
+    return zk_address;
+
 }
 
 int main(int argc, char* argv[]) {
@@ -67,6 +71,11 @@ int main(int argc, char* argv[]) {
         return errno;
     }
 
+    int span = 2;
+    if (argc >= 2) {
+        span = std::stoi(std::string(argv[1]));
+    }
+
     zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames", "/mq", zk_client);
 
     const string broker_conf_path = std::string(user_home) + "/rmq/conf/broker.conf";
@@ -74,6 +83,10 @@ int main(int argc, char* argv[]) {
     properties.load(broker_conf_path);
 
     std::string ip = zk::InetAddr::localhost();
+
+    if (argc >= 3) {
+        ip = std::string(argv[2]);
+    }
 
     std::string broker_name;
 
@@ -92,7 +105,7 @@ int main(int argc, char* argv[]) {
         if (properties.has(key)) {
             broker_name = properties.get(key);
             if (brokerNameAllocator.valid(broker_name)) {
-                std::string allocated_broker_name = brokerNameAllocator.acquire(ip, 2, broker_name);
+                std::string allocated_broker_name = brokerNameAllocator.acquire(ip, span, broker_name);
                 if (allocated_broker_name == broker_name) {
                     LOG(INFO) << "Preferred broker name is accepted and registered to ZooKeeper";
                 }
@@ -105,7 +118,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (!okay) {
-        broker_name = brokerNameAllocator.acquire(ip, 2, "");
+        broker_name = brokerNameAllocator.acquire(ip, span, "");
         std::cout << broker_name;
         okay = true;
     }

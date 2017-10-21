@@ -40,4 +40,8 @@ add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
 target_link_libraries(${CMAKE_PROJECT_NAME}
         ${CMAKE_PROJECT_NAME}_base)
 
+enable_testing()
+add_custom_target(check ${CMAKE_CTEST_COMMAND} -V)
+
 add_subdirectory(tests)
+add_subdirectory(benchmark)

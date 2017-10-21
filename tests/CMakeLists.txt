@@ -5,3 +5,5 @@ target_link_libraries(BrokerNameAllocator_ut
         ${GTEST_LIBRARIES}
         ${CMAKE_PROJECT_NAME}_base)
 add_test(NAME BrokerNameAllocator_ut COMMAND BrokerNameAllocator_ut)
+
+add_dependencies(check BrokerNameAllocator_ut)

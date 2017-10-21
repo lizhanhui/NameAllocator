@@ -26,7 +26,7 @@ namespace zk {
 
         bool release(const std::string &broker_name, const std::string &ip);
 
-        bool valid(const std::string &broker_name);
+        static bool valid(const std::string &broker_name);
 
     private:
         void lock();

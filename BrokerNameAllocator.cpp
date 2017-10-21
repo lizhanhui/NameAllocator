@@ -86,7 +86,7 @@ namespace zk {
             std::unordered_set<std::string> broker_name_set = ZKPaths::children(handler, broker_name_prefix);
             if (!broker_name_set.empty()) {
                 for (const std::string &broker_name_it : broker_name_set) {
-                    if (!valid(broker_name_it)) {
+                    if (!BrokerNameAllocator::valid(broker_name_it)) {
                         LOG(WARNING) << "Skip bad broker name: " << broker_name_it;
                         continue;
                     }

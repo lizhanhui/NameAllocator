@@ -12,7 +12,9 @@ endif ()
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/)
 
-set(SOURCE_FILES main.cpp
+set(SOURCE_FILES main.cpp)
+
+SET(BROKER_NAME_ALLOCATOR_BASE_FILES
         ZKPaths.cpp
         Properties.cpp
         InetAddr.cpp
@@ -26,9 +28,16 @@ include_directories(
         ${GLOG_INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/include)
 
-add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
+add_library(${CMAKE_PROJECT_NAME}_base ${BROKER_NAME_ALLOCATOR_BASE_FILES})
 
-target_link_libraries(${CMAKE_PROJECT_NAME}
+TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME}_base
         zookeeper_mt
         ${GLOG_LIBRARIES}
         gflags)
+
+add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})
+
+target_link_libraries(${CMAKE_PROJECT_NAME}
+        ${CMAKE_PROJECT_NAME}_base)
+
+add_subdirectory(tests)

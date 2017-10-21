@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
         string key = "brokerName";
         if (properties.has(key)) {
             broker_name = properties.get(key);
-            if (brokerNameAllocator.valid(broker_name)) {
+            if (zk::BrokerNameAllocator::valid(broker_name)) {
                 std::string allocated_broker_name = brokerNameAllocator.acquire(ip, span, broker_name);
                 if (allocated_broker_name == broker_name) {
                     LOG(INFO) << "Preferred broker name is accepted and registered to ZooKeeper";

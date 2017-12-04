@@ -53,7 +53,7 @@ namespace zk {
         throw -1;
     }
 
-    std::string BrokerNameAllocator::acquire(const std::string &ip, int span, const std::string &prefer_name) {
+    std::string BrokerNameAllocator::acquire(const std::string &ip, int span, const std::string &prefer_name, int minIndex) {
         std::string broker_name;
         bool exists = true;
         try {
@@ -108,6 +108,10 @@ namespace zk {
                     }
                 }
             }
+        }
+
+        if (index < minIndex) {
+            index = minIndex;
         }
 
         if (create) {

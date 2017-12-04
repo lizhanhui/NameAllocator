@@ -22,7 +22,7 @@ namespace zk {
 
         std::string lookup(const std::string& ip);
 
-        std::string acquire(const std::string &ip, int span, const std::string &prefer_name);
+        std::string acquire(const std::string &ip, int span, const std::string &prefer_name, int minIndex = 1000);
 
         bool release(const std::string &broker_name, const std::string &ip);
 

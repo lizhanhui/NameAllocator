@@ -23,14 +23,16 @@ namespace zk {
 
     void BrokerNameAllocator::unlock() {
         std::string path = lock_prefix + "/lock";
-        std::string ip = InetAddr::localhost();
-        if (ip == ZKPaths::get(handler, path)) {
-            while (!ZKPaths::rm(handler, path)) {
-                LOG(ERROR) << "Failed to release lock";
-                std::this_thread::sleep_for(std::chrono::seconds(1));
+        if (ZKPaths::exists(handler, path)) {
+            std::string ip = InetAddr::localhost();
+            if (ip == ZKPaths::get(handler, path)) {
+                while (!ZKPaths::rm(handler, path)) {
+                    LOG(ERROR) << "Failed to release lock";
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                }
             }
+            LOG(INFO) << "Lock released OK";
         }
-        LOG(INFO) << "Lock released OK";
     }
 
     std::string BrokerNameAllocator::lookup(const std::string &ip) {

@@ -10,7 +10,7 @@
 namespace zk {
     class ZKPaths {
     public:
-        static bool mkdir(zhandle_t *handler, const std::string &path, const std::string& data);
+        static bool mkdir(zhandle_t *handler, const std::string &path, const std::string& data, bool ephemeral = false);
 
         static bool rm(zhandle_t *handler, const std::string &path);
 

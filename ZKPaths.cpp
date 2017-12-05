@@ -2,7 +2,7 @@
 
 namespace zk {
 
-    bool ZKPaths::mkdir(zhandle_t *handler, const std::string &path, const std::string& data) {
+    bool ZKPaths::mkdir(zhandle_t *handler, const std::string &path, const std::string& data, bool ephemeral) {
         if (exists(handler, path)) {
             return false;
         }
@@ -10,8 +10,8 @@ namespace zk {
         int BUFFER_SIZE = 1024;
         char buf[BUFFER_SIZE];
         const char* pData = data.c_str();
-        int status = zoo_create(handler, path.c_str(), pData, strlen(pData), &ZOO_OPEN_ACL_UNSAFE, 0, buf,
-                                sizeof(buf) - 1);
+        int status = zoo_create(handler, path.c_str(), pData, strlen(pData), &ZOO_OPEN_ACL_UNSAFE,
+                                ephemeral ? ZOO_EPHEMERAL : 0, buf, sizeof(buf) - 1);
         return status == ZOK;
     }
 

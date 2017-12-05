@@ -61,7 +61,8 @@ int main(int argc, char* argv[]) {
     google::InitGoogleLogging(argv[0]);
 
     const char* user_home = getenv("HOME");
-    google::SetLogDestination(google::GLOG_ERROR, string(user_home).append("/logs/zk_").c_str());
+    const char* log_file_name_prefix = string(user_home).append("/name_allocator_zk_").c_str();
+    google::SetLogDestination(google::GLOG_INFO, log_file_name_prefix);
 
     zoo_set_debug_level(ZOO_LOG_LEVEL_ERROR);
     static zhandle_t *zk_client;

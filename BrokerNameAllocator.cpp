@@ -9,7 +9,7 @@ namespace zk {
 
         std::string path = lock_prefix + "/lock";
         std::string ip = InetAddr::localhost();
-        while (!ZKPaths::mkdir(handler, path, ip)) {
+        while (!ZKPaths::mkdir(handler, path, ip, true)) {
             LOG(ERROR) << "Unable to acquire lock. Sleep for 1 second";
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }

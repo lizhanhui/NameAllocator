@@ -43,5 +43,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
 enable_testing()
 add_custom_target(check ${CMAKE_CTEST_COMMAND} -V)
 
-add_subdirectory(tests)
-add_subdirectory(benchmark)
+if (CMAKE_BUILD_TESTS)
+    add_subdirectory(tests)
+    add_subdirectory(benchmark)
+endif ()

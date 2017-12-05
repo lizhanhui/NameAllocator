@@ -15,9 +15,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/)
 set(SOURCE_FILES main.cpp)
 
 SET(BROKER_NAME_ALLOCATOR_BASE_FILES
-        ZKPaths.cpp
         Properties.cpp
         InetAddr.cpp
+        ZKClient.cpp
         BrokerNameAllocator.cpp)
 
 find_package(Glog REQUIRED)

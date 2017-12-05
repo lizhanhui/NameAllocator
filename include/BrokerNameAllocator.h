@@ -7,16 +7,16 @@
 #include <glog/logging.h>
 #include <thread>
 
-#include "ZKPaths.h"
+#include "ZKClient.h"
 #include "InetAddr.h"
 
 namespace zk {
     class BrokerNameAllocator {
+
     public:
-        BrokerNameAllocator(const std::string& broker_name_prefix, const std::string &lock_prefix, zhandle_t* handler)
-                : broker_name_prefix(broker_name_prefix), lock_prefix(lock_prefix), handler(handler) {
-            lock();
-        }
+        BrokerNameAllocator(const std::string& broker_name_prefix,
+                            const std::string &lock_prefix,
+                            const std::string &zk_address);
 
         ~BrokerNameAllocator();
 
@@ -36,7 +36,7 @@ namespace zk {
     private:
         const std::string& broker_name_prefix;
         const std::string& lock_prefix;
-        zhandle_t* handler;
+        ZKClient zkClient;
     };
 }
 

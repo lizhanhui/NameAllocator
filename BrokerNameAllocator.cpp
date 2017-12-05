@@ -2,31 +2,40 @@
 
 namespace zk {
 
+    BrokerNameAllocator::BrokerNameAllocator(const std::string &broker_name_prefix,
+                                             const std::string &lock_prefix,
+                                             const std::string &zk_address)
+            : broker_name_prefix(broker_name_prefix),
+              lock_prefix(lock_prefix),
+              zkClient(zk_address) {
+        lock();
+    }
+
     void BrokerNameAllocator::lock() {
-        if (!ZKPaths::exists(handler, lock_prefix)) {
-            ZKPaths::mkdirs(handler, lock_prefix);
+        if (!zkClient.exists(lock_prefix)) {
+            zkClient.mkdirs(lock_prefix);
         }
 
         std::string path = lock_prefix + "/lock";
         std::string ip = InetAddr::localhost();
-        while (!ZKPaths::mkdir(handler, path, ip, true)) {
+        while (!zkClient.mkdir(path, ip, true)) {
             LOG(ERROR) << "Unable to acquire lock. Sleep for 1 second";
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
         LOG(INFO) << "Lock acquired OK";
 
-        if(!ZKPaths::exists(handler, broker_name_prefix)) {
-            ZKPaths::mkdirs(handler, broker_name_prefix);
+        if(!zkClient.exists(broker_name_prefix)) {
+            zkClient.mkdirs(broker_name_prefix);
         }
     }
 
 
     void BrokerNameAllocator::unlock() {
         std::string path = lock_prefix + "/lock";
-        if (ZKPaths::exists(handler, path)) {
+        if (zkClient.exists(path)) {
             std::string ip = InetAddr::localhost();
-            if (ip == ZKPaths::get(handler, path)) {
-                while (!ZKPaths::rm(handler, path)) {
+            if (ip == zkClient.get(path)) {
+                while (!zkClient.rm(path)) {
                     LOG(ERROR) << "Failed to release lock";
                     std::this_thread::sleep_for(std::chrono::seconds(1));
                 }
@@ -36,16 +45,16 @@ namespace zk {
     }
 
     std::string BrokerNameAllocator::lookup(const std::string &ip) {
-        std::unordered_set<std::string> broker_name_set = ZKPaths::children(handler, broker_name_prefix);
+        std::unordered_set<std::string> broker_name_set = zkClient.children(broker_name_prefix);
         if (!broker_name_set.empty()) {
             for (const std::string &broker_name : broker_name_set) {
                 std::string name_node_path(broker_name_prefix);
                 name_node_path.append("/").append(broker_name);
-                std::unordered_set<std::string> ip_set = ZKPaths::children(handler, name_node_path);
+                std::unordered_set<std::string> ip_set = zkClient.children(name_node_path);
                 for (const std::string &ip_node : ip_set) {
                     std::string ip_node_path(name_node_path);
                     ip_node_path.append("/").append(ip_node);
-                    if (ip == ZKPaths::get(handler, ip_node_path)) {
+                    if (ip == zkClient.get(ip_node_path)) {
                         return broker_name;
                     }
                 }
@@ -75,17 +84,17 @@ namespace zk {
                 std::string prefer_name_node(broker_name_prefix);
                 prefer_name_node.append("/").append(prefer_name);
 
-                if(!ZKPaths::exists(handler, prefer_name_node) ||
-                   ZKPaths::children(handler, prefer_name_node).size() < span) {
+                if(!zkClient.exists(prefer_name_node) ||
+                   zkClient.children(prefer_name_node).size() < span) {
                     std::string ip_node(prefer_name_node);
                     ip_node.append("/").append(ip);
-                    ZKPaths::mkdirs(handler, ip_node);
-                    ZKPaths::set(handler, ip_node, ip);
+                    zkClient.mkdirs(ip_node);
+                    zkClient.set(ip_node, ip);
                     return prefer_name;
                 }
             }
 
-            std::unordered_set<std::string> broker_name_set = ZKPaths::children(handler, broker_name_prefix);
+            std::unordered_set<std::string> broker_name_set = zkClient.children(broker_name_prefix);
             if (!broker_name_set.empty()) {
                 for (const std::string &broker_name_it : broker_name_set) {
                     if (!BrokerNameAllocator::valid(broker_name_it)) {
@@ -94,12 +103,12 @@ namespace zk {
                     }
 
                     std::string name_node = broker_name_prefix + "/" + broker_name_it;
-                    std::unordered_set<std::string> ip_set = ZKPaths::children(handler, name_node);
+                    std::unordered_set<std::string> ip_set = zkClient.children(name_node);
                     if (ip_set.size() < span) {
                         create = false;
                         std::string ip_node_path(name_node);
                         ip_node_path.append("/").append(ip);
-                        ZKPaths::mkdir(handler, ip_node_path, ip);
+                        zkClient.mkdir(ip_node_path, ip);
                         broker_name = broker_name_it;
                         break;
                     }
@@ -121,8 +130,8 @@ namespace zk {
             broker_name.append("broker").append(std::to_string(++index));
             std::string ip_node_path(broker_name_prefix);
             ip_node_path.append("/").append(broker_name).append("/").append(ip);
-            ZKPaths::mkdirs(handler, ip_node_path);
-            ZKPaths::set(handler, ip_node_path, ip);
+            zkClient.mkdirs(ip_node_path);
+            zkClient.set(ip_node_path, ip);
         }
 
         return broker_name;
@@ -131,9 +140,9 @@ namespace zk {
     bool BrokerNameAllocator::release(const std::string &broker_name, const std::string &ip) {
         std::string ip_node_path(broker_name_prefix);
         ip_node_path.append("/").append(broker_name).append("/").append(ip);
-        if (ZKPaths::exists(handler, ip_node_path)) {
+        if (zkClient.exists(ip_node_path)) {
             LOG(INFO) << "IP node to delete: " << ip_node_path;
-            return ZKPaths::rm(handler, ip_node_path);
+            return zkClient.rm(ip_node_path);
         }
 
         LOG(ERROR) << "IP node specified is not existing";
@@ -155,7 +164,6 @@ namespace zk {
 
     BrokerNameAllocator::~BrokerNameAllocator() {
         unlock();
-        zookeeper_close(handler);
         LOG(INFO) << "ZooKeeper client closed";
     }
 }

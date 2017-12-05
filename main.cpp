@@ -1,17 +1,9 @@
 #include <iostream>
 #include <glog/logging.h>
-#include <cstdlib>
-
 #include "Properties.h"
 #include "BrokerNameAllocator.h"
-#include "ZKPaths.h"
-#include "InetAddr.h"
 
 using namespace std;
-
-void watcher(zhandle_t* handler, int type, int state, const char* path, void* watcherCtx) {
-    LOG(INFO) << "ZooKeeper client watcher invoked";
-}
 
 std::vector<std::string> split(const std::string &s, char c) {
     std::vector<std::string> v;
@@ -65,21 +57,15 @@ int main(int argc, char* argv[]) {
     google::SetLogDestination(google::GLOG_INFO, log_file_name_prefix);
 
     zoo_set_debug_level(ZOO_LOG_LEVEL_ERROR);
-    static zhandle_t *zk_client;
-    const std::string zk_address = build_zk_address();
-    zk_client = zookeeper_init(zk_address.c_str(), watcher, 10000, nullptr, nullptr, 0);
 
-    if (nullptr == zk_client) {
-        LOG(ERROR) << "Failed to create zookeeper client";
-        return errno;
-    }
+    const std::string zk_address = build_zk_address();
 
     int span = 2;
     if (argc >= 2) {
         span = std::stoi(std::string(argv[1]));
     }
 
-    zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames", "/mq", zk_client);
+    zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames", "/mq", zk_address);
 
     const string broker_conf_path = std::string(user_home) + "/rmq/conf/broker.conf";
     zk::Properties properties;

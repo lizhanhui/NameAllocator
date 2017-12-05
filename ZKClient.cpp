@@ -1,9 +1,46 @@
-#include "ZKPaths.h"
-
+#include "ZKClient.h"
 namespace zk {
+    ZKClient::ZKClient(const std::string &zk_connection_url, bool autoReconnect)
+            : zk_address(zk_connection_url),
+              connected(false),
+              reconnectOnConnectionLoss(autoReconnect) {
+        start();
+    }
 
-    bool ZKPaths::mkdir(zhandle_t *handler, const std::string &path, const std::string& data, bool ephemeral) {
-        if (exists(handler, path)) {
+    void ZKClient::watcher(zhandle_t *handler, int type, int state, const char *path, void *watcherCtx) {
+        if (ZOO_SESSION_EVENT == type) {
+            ZKClient *zkClient = (ZKClient *)zoo_get_context(handler);
+
+            if (ZOO_CONNECTED_STATE == state) {
+                std::unique_lock<std::mutex> lock(zkClient->mtx);
+                zkClient->connected = true;
+                zkClient->cv.notify_all();
+                LOG(INFO) << "Connected";
+            }
+
+            if (ZOO_EXPIRED_SESSION_STATE == state) {
+                LOG(WARNING) << "Connection to ZK is lost";
+                while (true) {
+                    handler = zookeeper_init(zkClient->zk_address.c_str(), ZKClient::watcher, 10000, nullptr, zkClient, 0);
+                    if (nullptr != handler) {
+                        LOG(INFO) << "Connect ZK OK";
+                        break;
+                    }
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                }
+            }
+        }
+    }
+
+    void ZKClient::start() {
+        handler = zookeeper_init(zk_address.c_str(), ZKClient::watcher, 10000, nullptr, this, 0);
+        std::unique_lock<std::mutex> lock(mtx);
+        cv.wait(lock, [&]{return connected;});
+    }
+
+    bool ZKClient::mkdir(const std::string &path, const std::string& data, bool ephemeral) {
+        validate_zk_connection();
+        if (exists(path)) {
             return false;
         }
 
@@ -15,11 +52,13 @@ namespace zk {
         return status == ZOK;
     }
 
-    bool ZKPaths::rm(zhandle_t *handler, const std::string &path) {
+    bool ZKClient::rm(const std::string &path) {
+        validate_zk_connection();
         return ZOK == zoo_delete(handler, path.c_str(), -1);
     }
 
-    void ZKPaths::mkdirs(zhandle_t *handler, const std::string &path) {
+    void ZKClient::mkdirs(const std::string &path) {
+        validate_zk_connection();
         struct Stat stat;
         int rc = zoo_exists(handler, path.c_str(), 0, &stat);
         if (ZNONODE == rc) {
@@ -48,13 +87,15 @@ namespace zk {
         }
     }
 
-    bool ZKPaths::exists(zhandle_t *handler, const std::string &path) {
+    bool ZKClient::exists(const std::string &path) {
+        validate_zk_connection();
         struct Stat stat;
         int status = zoo_exists(handler, path.c_str(), 0, &stat);
         return status == ZOK;
     }
 
-    std::unordered_set<std::string> ZKPaths::children(zhandle_t *handler, const std::string &path) {
+    std::unordered_set<std::string> ZKClient::children(const std::string &path) {
+        validate_zk_connection();
         struct String_vector vector;
         std::unordered_set<std::string> s;
         int status = zoo_get_children(handler, path.c_str(), 0, &vector);
@@ -78,7 +119,8 @@ namespace zk {
         throw status;
     }
 
-    const std::string ZKPaths::get(zhandle_t *handler, const std::string &path) {
+    const std::string ZKClient::get(const std::string &path) {
+        validate_zk_connection();
         int BUFFER_SIZE = 4096;
         struct Stat stat;
         char buffer[BUFFER_SIZE];
@@ -104,7 +146,8 @@ namespace zk {
         throw status;
     }
 
-    bool ZKPaths::set(zhandle_t *handler, const std::string &path, const std::string &data) {
+    bool ZKClient::set(const std::string &path, const std::string &data) {
+        validate_zk_connection();
         int status = zoo_set(handler, path.c_str(), data.c_str(), data.size(), -1);
         if (ZOK == status) {
             return true;
@@ -113,4 +156,17 @@ namespace zk {
         return false;
     }
 
+    void ZKClient::validate_zk_connection() {
+        if (nullptr == handler) {
+            std::unique_lock<std::mutex> lock(mtx);
+            cv.wait(lock);
+        }
+    }
+
+    ZKClient::~ZKClient() {
+        if (nullptr != handler) {
+            zookeeper_close(handler);
+            handler = nullptr;
+        }
+    }
 }

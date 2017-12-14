@@ -22,10 +22,12 @@ SET(BROKER_NAME_ALLOCATOR_BASE_FILES
 
 find_package(Glog REQUIRED)
 find_package(gflags REQUIRED)
+find_package(RapidJSON)
 
 include_directories(
         /usr/local/include
         ${GLOG_INCLUDE_DIRS}
+        ${RapidJSON_INCLUDE_DIR}
         ${CMAKE_SOURCE_DIR}/include)
 
 add_library(${CMAKE_PROJECT_NAME}_base ${BROKER_NAME_ALLOCATOR_BASE_FILES})

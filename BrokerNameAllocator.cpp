@@ -1,4 +1,3 @@
-#include <rapidjson/writer.h>
 #include "BrokerNameAllocator.h"
 
 namespace zk {
@@ -20,10 +19,10 @@ namespace zk {
         std::string path = lock_prefix + "/lock";
         std::string ip = InetAddr::localhost();
         while (!zkClient.mkdir(path, ip, true)) {
-            LOG(ERROR) << "Unable to acquire lock. Sleep for 1 second";
+            spdlog::get("logger")->error("Unable to acquire lock. Sleep for 1 second");
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
-        LOG(INFO) << "Lock acquired OK";
+        spdlog::get("logger")->info("Lock acquired OK");
 
         if(!zkClient.exists(broker_name_prefix)) {
             zkClient.mkdirs(broker_name_prefix);
@@ -37,11 +36,11 @@ namespace zk {
             std::string ip = InetAddr::localhost();
             if (ip == zkClient.get(path)) {
                 while (!zkClient.rm(path)) {
-                    LOG(ERROR) << "Failed to release lock";
+                    spdlog::get("logger")->error("Failed to release lock");
                     std::this_thread::sleep_for(std::chrono::seconds(1));
                 }
             }
-            LOG(INFO) << "Lock released OK";
+            spdlog::get("logger")->info("Lock released OK");
         }
     }
 
@@ -94,7 +93,7 @@ namespace zk {
         if (!exists) {
 
             if (!prefer_name.empty()) {
-                LOG(INFO) << "Trying to acquire and register preferred broker name: " << prefer_name;
+                spdlog::get("logger")->info("Trying to acquire and register preferred broker name: {}", prefer_name);
                 std::string prefer_name_node(broker_name_prefix);
                 prefer_name_node.append("/").append(prefer_name);
 
@@ -112,7 +111,7 @@ namespace zk {
             if (!broker_name_set.empty()) {
                 for (const std::string &broker_name_it : broker_name_set) {
                     if (!BrokerNameAllocator::valid(broker_name_it)) {
-                        LOG(WARNING) << "Skip bad broker name: " << broker_name_it;
+                        spdlog::get("logger")->warn("Skip bad broker name: {}", broker_name_it);
                         continue;
                     }
 
@@ -155,11 +154,10 @@ namespace zk {
         std::string ip_node_path(broker_name_prefix);
         ip_node_path.append("/").append(broker_name).append("/").append(ip);
         if (zkClient.exists(ip_node_path)) {
-            LOG(INFO) << "IP node to delete: " << ip_node_path;
+            spdlog::get("logger")->info("IP node to delete: {}", ip_node_path);
             return zkClient.rm(ip_node_path);
         }
-
-        LOG(ERROR) << "IP node specified is not existing";
+        spdlog::get("logger")->error("IP node specified is not existing");
         return false;
     }
 
@@ -178,6 +176,6 @@ namespace zk {
 
     BrokerNameAllocator::~BrokerNameAllocator() {
         unlock();
-        LOG(INFO) << "ZooKeeper client closed";
+        spdlog::get("logger")->info("ZooKeeper client closed");
     }
 }

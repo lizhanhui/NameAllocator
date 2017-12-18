@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <string>
 #include <fstream>
-#include <glog/logging.h>
+#include "spdlog/spdlog.h"
 
 namespace zk {
     class Properties {

@@ -13,7 +13,7 @@ namespace zk {
                 std::string key = trim(s.substr(0, pos));
                 std::string value = trim(s.substr(pos + 1));
                 data.insert(std::make_pair(key, value));
-                LOG(INFO) << "Key: " << key << ", Value: " << value;
+                spdlog::get("logger")->info("Key: {}, Value: {}", key, value);
             }
         }
     }
@@ -27,7 +27,7 @@ namespace zk {
         if (search != data.end()) {
             return search->second;
         }
-        LOG(WARNING) << "Key: " << key << " is not existing";
+        spdlog::get("logger")->warn("Key: {} is not existing", key);
         throw std::exception();
     }
 

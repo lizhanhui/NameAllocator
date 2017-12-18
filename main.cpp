@@ -1,5 +1,5 @@
 #include <iostream>
-#include <glog/logging.h>
+#include "spdlog/spdlog.h"
 #include "Properties.h"
 #include "BrokerNameAllocator.h"
 
@@ -28,8 +28,7 @@ std::string build_zk_address() {
     const char* pZkHost = getenv("middleware_zk_hosts");
     const char* pZkPort = getenv("middleware_zk_port");
     if (nullptr == pZkHost || nullptr == pZkPort) {
-        LOG(WARNING) << "Environment variable: middleware_zk_hosts or middleware_zk_port is undefined."
-                     << " Using localhost:2181 by default";
+        spdlog::get("logger")->warn("Environment variable: middleware_zk_hosts or middleware_zk_port is undefined.  Using localhost:2181 by default");
         return "localhost:2181";
     }
 
@@ -44,19 +43,18 @@ std::string build_zk_address() {
         }
         zk_address.append(item).append(1, ':').append(zk_port);
     }
-
-    LOG(INFO) << "ZooKeeper addresses:" << zk_address;
+    spdlog::get("logger")->info("ZooKeeper addresses: {}", zk_address);
     return zk_address;
 
 }
 
 int main(int argc, char* argv[]) {
-    google::InitGoogleLogging(argv[0]);
+
+    auto rotatingLog = spdlog::rotating_logger_mt("logger", "name_allocator.log", 1048576 * 5, 3);
+    spdlog::set_level(spdlog::level::debug);
+    rotatingLog->info("Test");
 
     const char* user_home = getenv("HOME");
-    const char* log_file_name_prefix = string(user_home).append("/name_allocator_zk_").c_str();
-    google::SetLogDestination(google::GLOG_INFO, log_file_name_prefix);
-
     zoo_set_debug_level(ZOO_LOG_LEVEL_ERROR);
 
     const std::string zk_address = build_zk_address();
@@ -85,7 +83,7 @@ int main(int argc, char* argv[]) {
         broker_name = brokerNameAllocator.lookup(ip);
         okay = true;
     } catch (int status) {
-        LOG(INFO) << "Cannot find broker name record according to IP: " << ip;
+        rotatingLog->info("Cannot find broker name record according to IP: {}", ip);
     }
 
     if (!okay) {
@@ -95,7 +93,7 @@ int main(int argc, char* argv[]) {
             if (zk::BrokerNameAllocator::valid(broker_name)) {
                 std::string allocated_broker_name = brokerNameAllocator.acquire(ip, span, broker_name);
                 if (allocated_broker_name == broker_name) {
-                    LOG(INFO) << "Preferred broker name is accepted and registered to ZooKeeper";
+                    rotatingLog->info("Preferred broker name is accepted and registered to ZooKeeper");
                 } else {
                     broker_name = allocated_broker_name;
                 }
@@ -113,8 +111,6 @@ int main(int argc, char* argv[]) {
         // output the registered broker name in case this application is used in command line.
         std::cout << broker_name;
     }
-
-    google::ShutdownGoogleLogging();
 
     return 0;
 }

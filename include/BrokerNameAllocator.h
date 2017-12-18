@@ -4,10 +4,11 @@
 #include <string>
 #include <unordered_set>
 #include <zookeeper/zookeeper.h>
-#include <glog/logging.h>
 #include <thread>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+#include "spdlog/spdlog.h"
 
 #include "ZKClient.h"
 #include "InetAddr.h"

@@ -8,7 +8,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <zookeeper/zookeeper.h>
-#include <glog/logging.h>
+#include "spdlog/spdlog.h"
 
 namespace zk {
 

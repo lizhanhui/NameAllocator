@@ -5,7 +5,7 @@ namespace zk {
         struct ifaddrs *if_address = nullptr;
         int status = getifaddrs(&if_address);
         if (status == -1) {
-            LOG(ERROR) << "Failed to call getifaddrs(). Error message: " << gai_strerror(errno);
+            spdlog::get("logger")->error("Failed to call getifaddrs(). Error message: {}", gai_strerror(errno));
             throw std::exception();
         }
 

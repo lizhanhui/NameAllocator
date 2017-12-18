@@ -15,15 +15,15 @@ namespace zk {
                 std::unique_lock<std::mutex> lock(zkClient->mtx);
                 zkClient->connected = true;
                 zkClient->cv.notify_all();
-                LOG(INFO) << "Connected";
+                spdlog::get("logger")->info("Connected");
             }
 
             if (ZOO_EXPIRED_SESSION_STATE == state) {
-                LOG(WARNING) << "Connection to ZK is lost";
+                spdlog::get("logger")->warn("Connection to ZK is lost");
                 while (true) {
                     handler = zookeeper_init(zkClient->zk_address.c_str(), ZKClient::watcher, 10000, nullptr, zkClient, 0);
                     if (nullptr != handler) {
-                        LOG(INFO) << "Connect ZK OK";
+                        spdlog::get("logger")->info("Connect ZK OK");
                         break;
                     }
                     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -70,10 +70,10 @@ namespace zk {
                 if (ZNONODE == zoo_exists(handler, parent.c_str(), 0, &stat)) {
                     rc = zoo_create(handler, parent.c_str(), nullptr, -1, &ZOO_OPEN_ACL_UNSAFE, 0, nullptr, 0);
                     if (rc) {
-                        LOG(ERROR) << "Failed to create node: " << parent << std::endl;
+                        spdlog::get("logger")->error("Failed to create node: {}", parent);
                         break;
                     }
-                    LOG(INFO) << "New node: " << parent << " created" << std::endl;
+                    spdlog::get("logger")->info("New node: {} created OK", parent);
                 }
 
                 if (pos == path.npos) {
@@ -83,7 +83,7 @@ namespace zk {
                 pos = path.find_first_of(separator, pos + 1);
             }
         } else {
-            LOG(ERROR) << "Path: " << path << " has already existed" << std::endl;
+            spdlog::get("logger")->error("Path: {} has already existed", path);
         }
     }
 
@@ -107,11 +107,11 @@ namespace zk {
                 return s;
 
             case ZNONODE:
-                LOG(ERROR) << path << " does not exist";
+                spdlog::get("logger")->error("{}  does not exist", path);
                 break;
 
             default:
-                LOG(ERROR) << "Unknown error. Error code: " << status;
+                spdlog::get("logger")->error("Unknown error. Error code: {}", status);
                 break;
         }
 
@@ -131,16 +131,16 @@ namespace zk {
                 if (BUFFER_SIZE > 0) {
                     result.append(buffer, BUFFER_SIZE);
                 } else {
-                    LOG(INFO) << path << " has no data";
+                    spdlog::get("logger")->info("{} has no data", path);
                 }
                 return result;
 
             case ZNONODE:
-                LOG(ERROR) << path << " does not exist";
+                spdlog::get("logger")->error("{} does not exist", path);
                 break;
 
             default:
-                LOG(ERROR) << "Unknown error. Error code: " << status;
+                spdlog::get("logger")->error("Unknown error. Error code: {}", status);
         }
 
         throw status;
@@ -152,7 +152,7 @@ namespace zk {
         if (ZOK == status) {
             return true;
         }
-        LOG(ERROR) << "Failed to set data for path: " << path;
+        spdlog::get("logger")->error("Failed to set data for path: {}", path);
         return false;
     }
 

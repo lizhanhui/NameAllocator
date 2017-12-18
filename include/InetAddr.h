@@ -10,7 +10,7 @@
 #include <ifaddrs.h>
 
 #include <string>
-#include <glog/logging.h>
+#include "spdlog/spdlog.h"
 
 namespace zk {
     class InetAddr {

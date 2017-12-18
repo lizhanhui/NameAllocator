@@ -6,6 +6,8 @@
 #include <zookeeper/zookeeper.h>
 #include <glog/logging.h>
 #include <thread>
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/stringbuffer.h>
 
 #include "ZKClient.h"
 #include "InetAddr.h"
@@ -29,11 +31,13 @@ namespace zk {
         static bool valid(const std::string &broker_name);
 
     private:
+
         void lock();
 
         void unlock();
 
-    private:
+        std::string getNodeTextValue();
+
         const std::string& broker_name_prefix;
         const std::string& lock_prefix;
         ZKClient zkClient;

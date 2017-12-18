@@ -1,9 +1,5 @@
 #include <iostream>
 #include <glog/logging.h>
-#include <rapidjson/document.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/stringbuffer.h>
 #include "Properties.h"
 #include "BrokerNameAllocator.h"
 
@@ -62,24 +58,6 @@ int main(int argc, char* argv[]) {
     google::SetLogDestination(google::GLOG_INFO, log_file_name_prefix);
 
     zoo_set_debug_level(ZOO_LOG_LEVEL_ERROR);
-
-    rapidjson::StringBuffer sb;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
-    writer.StartObject();
-    writer.String("idc");
-    writer.String("unknown");
-    writer.String("ip");
-    writer.String(zk::InetAddr::localhost().c_str());
-    writer.EndObject();
-
-    const char* json = sb.GetString();
-    cout << json << endl;
-
-    rapidjson::Document d;
-    d.Parse(json);
-
-    rapidjson::Value& ipV = d["ip"];
-    cout << "IP:" << ipV.GetString() << endl;
 
     const std::string zk_address = build_zk_address();
 

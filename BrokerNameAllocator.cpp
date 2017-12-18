@@ -1,3 +1,4 @@
+#include <rapidjson/writer.h>
 #include "BrokerNameAllocator.h"
 
 namespace zk {
@@ -44,6 +45,21 @@ namespace zk {
         }
     }
 
+    std::string BrokerNameAllocator::getNodeTextValue() {
+        const char *clusterName = getenv("brokerClusterName");
+        const char *idcRoom = getenv("current_idc");
+
+        rapidjson::StringBuffer stringBuffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(stringBuffer);
+        writer.StartObject();
+        writer.String("cluster");
+        writer.String(clusterName);
+        writer.String("idcRoom");
+        writer.String(idcRoom);
+        writer.EndObject();
+        return std::string(stringBuffer.GetString());
+    }
+
     std::string BrokerNameAllocator::lookup(const std::string &ip) {
         std::unordered_set<std::string> broker_name_set = zkClient.children(broker_name_prefix);
         if (!broker_name_set.empty()) {
@@ -51,10 +67,8 @@ namespace zk {
                 std::string name_node_path(broker_name_prefix);
                 name_node_path.append("/").append(broker_name);
                 std::unordered_set<std::string> ip_set = zkClient.children(name_node_path);
-                for (const std::string &ip_node : ip_set) {
-                    std::string ip_node_path(name_node_path);
-                    ip_node_path.append("/").append(ip_node);
-                    if (ip == zkClient.get(ip_node_path)) {
+                for (const std::string &next : ip_set) {
+                    if (next == ip) {
                         return broker_name;
                     }
                 }
@@ -131,7 +145,7 @@ namespace zk {
             std::string ip_node_path(broker_name_prefix);
             ip_node_path.append("/").append(broker_name).append("/").append(ip);
             zkClient.mkdirs(ip_node_path);
-            zkClient.set(ip_node_path, ip);
+            zkClient.set(ip_node_path, getNodeTextValue());
         }
 
         return broker_name;

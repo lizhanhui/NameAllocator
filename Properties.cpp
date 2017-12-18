@@ -3,6 +3,11 @@
 namespace zk {
     void Properties::load(const std::string &file) {
         std::fstream f(file.c_str(), std::ios_base::in );
+        if (!f.good()) {
+            spdlog::get("logger")->warn("File: {} does not exist", file);
+            return;
+        }
+
         for(std::string s; std::getline(f, s); ) {
             if (!s.empty() && s[0] == '#') {
                 continue;

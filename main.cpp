@@ -50,11 +50,14 @@ std::string build_zk_address() {
 
 int main(int argc, char* argv[]) {
 
-    auto rotatingLog = spdlog::rotating_logger_mt("logger", "name_allocator.log", 1048576 * 5, 3);
-    spdlog::set_level(spdlog::level::debug);
-    rotatingLog->info("Test");
+    const char* userHome = getenv("HOME");
+    std::string logFile(userHome);
+    logFile.append("/name_allocator.log");
 
-    const char* user_home = getenv("HOME");
+    auto rotatingLog = spdlog::rotating_logger_mt("logger", logFile, 1048576 * 5, 3);
+    spdlog::set_level(spdlog::level::debug);
+    rotatingLog->flush_on(spdlog::level::warn);
+
     zoo_set_debug_level(ZOO_LOG_LEVEL_ERROR);
 
     const std::string zk_address = build_zk_address();
@@ -66,7 +69,7 @@ int main(int argc, char* argv[]) {
 
     zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames", "/mq", zk_address);
 
-    const string broker_conf_path = std::string(user_home) + "/rmq/conf/broker.conf";
+    const string broker_conf_path("/home/admin/rmq/conf/broker.conf");
     zk::Properties properties;
     properties.load(broker_conf_path);
 

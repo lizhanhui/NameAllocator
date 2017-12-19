@@ -83,13 +83,16 @@ namespace zk {
                 }
             }
         } else {
-            spdlog::get("logger")->info("No existing broker names so far");
+            spdlog::get("logger")->info("No existing broker names so far. Quit look up broker name by IP");
         }
 
         throw -1;
     }
 
     std::string BrokerNameAllocator::acquire(const std::string &ip, int span, const std::string &prefer_name, int minIndex) {
+
+        spdlog::get("logger")->debug("Try to acquire a new broker name. IP: {}, span: {}, preferName: {}, minIndex: {}",
+                                     ip, span, prefer_name, minIndex);
         std::string broker_name;
         bool exists = true;
         try {
@@ -113,7 +116,9 @@ namespace zk {
                    zkClient.children(prefer_name_node).size() < span) {
                     std::string ip_node(prefer_name_node);
                     ip_node.append("/").append(ip);
+                    spdlog::get("logger")->debug("Prepare to create IP node: {} as this broker name does not exist or is not yet full", ip_node);
                     zkClient.mkdirs(ip_node);
+                    spdlog::get("logger")->debug("Create IP node: {} OK", ip_node);
                     zkClient.set(ip_node, getNodeTextValue());
                     return prefer_name;
                 }
@@ -153,10 +158,18 @@ namespace zk {
         if (create) {
             broker_name.clear();
             broker_name.append("broker").append(std::to_string(++index));
+            spdlog::get("logger")->debug("New broker name: {}", broker_name);
+
             std::string ip_node_path(broker_name_prefix);
             ip_node_path.append("/").append(broker_name).append("/").append(ip);
+
+            spdlog::get("logger")->debug("New IP node path: {}", ip_node_path);
+            spdlog::get("logger")->debug("Prepare to create node: {}", ip_node_path);
             zkClient.mkdirs(ip_node_path);
+            spdlog::get("logger")->debug("Create node: {} OK", ip_node_path);
+
             zkClient.set(ip_node_path, getNodeTextValue());
+            spdlog::get("logger")->debug("Update IP node content OK");
         }
 
         return broker_name;

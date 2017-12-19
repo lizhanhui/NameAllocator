@@ -7,7 +7,7 @@ if (${CMAKE_SYSTEM} MATCHES "Linux")
     message("Building a static-linked executable for Linux platform")
     SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     SET(BUILD_SHARED_LIBRARIES OFF)
-    SET(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++")
+    SET(CMAKE_EXE_LINKER_FLAGS "-static -static-libgcc -static-libstdc++ -pthread")
 endif ()
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/)
@@ -28,7 +28,7 @@ include_directories(
         ${RapidJSON_INCLUDE_DIR}
         ${CMAKE_SOURCE_DIR}/include)
 
-add_library(${CMAKE_PROJECT_NAME}_base ${BROKER_NAME_ALLOCATOR_BASE_FILES})
+add_library(${CMAKE_PROJECT_NAME}_base STATIC ${BROKER_NAME_ALLOCATOR_BASE_FILES})
 
 TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME}_base
         ${CMAKE_THREAD_LIBS_INIT}

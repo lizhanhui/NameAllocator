@@ -12,6 +12,8 @@ endif ()
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/)
 
+find_package(Threads REQUIRED)
+
 set(SOURCE_FILES main.cpp)
 
 SET(BROKER_NAME_ALLOCATOR_BASE_FILES
@@ -29,6 +31,7 @@ include_directories(
 add_library(${CMAKE_PROJECT_NAME}_base ${BROKER_NAME_ALLOCATOR_BASE_FILES})
 
 TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME}_base
+        ${CMAKE_THREAD_LIBS_INIT}
         zookeeper_mt)
 
 add_executable(${CMAKE_PROJECT_NAME} ${SOURCE_FILES})

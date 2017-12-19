@@ -14,7 +14,4 @@ function build() {
     make install
 }
 
-build gflags
-build glog
-build googletest
-build benchmark
+build rapidjson

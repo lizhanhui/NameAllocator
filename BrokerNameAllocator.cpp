@@ -77,10 +77,13 @@ namespace zk {
                 std::unordered_set<std::string> ip_set = zkClient.children(name_node_path);
                 for (const std::string &next : ip_set) {
                     if (next == ip) {
+                        spdlog::get("logger")->info("Broker name found: {} for IP: {}", broker_name, ip);
                         return broker_name;
                     }
                 }
             }
+        } else {
+            spdlog::get("logger")->info("No existing broker names so far");
         }
 
         throw -1;
@@ -91,6 +94,7 @@ namespace zk {
         bool exists = true;
         try {
             broker_name = lookup(ip);
+            return broker_name;
         } catch (int status) {
             if (-1 == status) {
                 exists = false;
@@ -100,7 +104,6 @@ namespace zk {
         bool create = true;
         int index = 0;
         if (!exists) {
-
             if (!prefer_name.empty()) {
                 spdlog::get("logger")->info("Trying to acquire and register preferred broker name: {}", prefer_name);
                 std::string prefer_name_node(broker_name_prefix);
@@ -111,7 +114,7 @@ namespace zk {
                     std::string ip_node(prefer_name_node);
                     ip_node.append("/").append(ip);
                     zkClient.mkdirs(ip_node);
-                    zkClient.set(ip_node, ip);
+                    zkClient.set(ip_node, getNodeTextValue());
                     return prefer_name;
                 }
             }

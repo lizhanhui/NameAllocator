@@ -102,6 +102,8 @@ int main(int argc, char* argv[]) {
                 }
                 okay = true;
             }
+        } else {
+            spdlog::get("logger")->warn("Cannot parse brokerName from broker configuration file: {}", broker_conf_path);
         }
     }
 

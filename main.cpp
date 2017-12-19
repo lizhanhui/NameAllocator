@@ -67,7 +67,9 @@ int main(int argc, char* argv[]) {
         span = std::stoi(std::string(argv[1]));
     }
 
-    zk::BrokerNameAllocator brokerNameAllocator("/mq/brokerNames", "/mq", zk_address);
+    const std::string brokerNamePrefix("/mq/brokerNames");
+    const std::string lockPrefix("/mq");
+    zk::BrokerNameAllocator brokerNameAllocator(brokerNamePrefix, lockPrefix, zk_address);
 
     const string broker_conf_path("/home/admin/rmq/conf/broker.conf");
     zk::Properties properties;

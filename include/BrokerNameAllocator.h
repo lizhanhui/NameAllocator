@@ -39,8 +39,8 @@ namespace zk {
 
         std::string getNodeTextValue();
 
-        const std::string& broker_name_prefix;
-        const std::string& lock_prefix;
+        const std::string broker_name_prefix;
+        const std::string lock_prefix;
         ZKClient zkClient;
     };
 }

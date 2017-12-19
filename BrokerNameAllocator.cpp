@@ -158,7 +158,7 @@ namespace zk {
         if (create) {
             broker_name.clear();
             broker_name.append("broker").append(std::to_string(++index));
-            spdlog::get("logger")->debug("New broker name: {}", broker_name);
+            spdlog::get("logger")->debug("New broker name: {}, broker name prefix: {}", broker_name, broker_name_prefix);
 
             std::string ip_node_path(broker_name_prefix);
             ip_node_path.append("/").append(broker_name).append("/").append(ip);

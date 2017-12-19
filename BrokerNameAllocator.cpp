@@ -46,7 +46,16 @@ namespace zk {
 
     std::string BrokerNameAllocator::getNodeTextValue() {
         const char *clusterName = getenv("brokerClusterName");
+        if (nullptr == clusterName) {
+            spdlog::get("logger")->warn("Environment variable {} is not available", "brokerClusterName");
+            clusterName = "cluster1";
+        }
+
         const char *idcRoom = getenv("current_idc");
+        if (nullptr == idcRoom) {
+            spdlog::get("logger")->warn("Environment variable: {} is not available", "current_idc");
+            idcRoom = "Unknown";
+        }
 
         rapidjson::StringBuffer stringBuffer;
         rapidjson::Writer<rapidjson::StringBuffer> writer(stringBuffer);

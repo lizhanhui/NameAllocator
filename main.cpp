@@ -8,7 +8,7 @@ using namespace std;
 std::vector<std::string> split(const std::string &s, char c) {
     std::vector<std::string> v;
     std::string item;
-    for(int i = 0; i < s.length(); i++) {
+    for(unsigned int i = 0; i < s.length(); i++) {
         if (s[i] == c) {
             v.push_back(item);
             item.clear();

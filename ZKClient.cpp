@@ -57,7 +57,7 @@ namespace zk {
         return ZOK == zoo_delete(handler, path.c_str(), -1);
     }
 
-    void ZKClient::mkdirs(const std::string &path) {
+    void ZKClient::mkdirs(const std::string &path, const char *data) {
         validate_zk_connection();
         struct Stat stat;
         int rc = zoo_exists(handler, path.c_str(), 0, &stat);
@@ -68,7 +68,11 @@ namespace zk {
             while (true) {
                 std::string parent = (pos == path.npos) ? path : path.substr(0, pos);
                 if (ZNONODE == zoo_exists(handler, parent.c_str(), 0, &stat)) {
-                    rc = zoo_create(handler, parent.c_str(), nullptr, -1, &ZOO_OPEN_ACL_UNSAFE, 0, nullptr, 0);
+                    if (pos == path.npos && nullptr != data) {
+                        rc = zoo_create(handler, parent.c_str(), data, strlen(data), &ZOO_OPEN_ACL_UNSAFE, 0, nullptr, 0);
+                    } else {
+                        rc = zoo_create(handler, parent.c_str(), nullptr, -1, &ZOO_OPEN_ACL_UNSAFE, 0, nullptr, 0);
+                    }
                     if (rc) {
                         spdlog::get("logger")->error("Failed to create node: {}", parent);
                         break;

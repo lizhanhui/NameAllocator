@@ -110,7 +110,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (!okay) {
-        broker_name = brokerNameAllocator.acquire(ip, span, "");
+        const std::string preferred_broker_name;
+        broker_name = brokerNameAllocator.acquire(ip, span, preferred_broker_name);
         okay = true;
     }
 

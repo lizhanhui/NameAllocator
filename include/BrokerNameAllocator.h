@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <zookeeper/zookeeper.h>
 #include <thread>
+#include <cstdlib>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>

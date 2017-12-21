@@ -13,7 +13,7 @@ namespace zk {
 
     void BrokerNameAllocator::lock() {
         if (!zkClient.exists(lock_prefix)) {
-            zkClient.mkdirs(lock_prefix);
+            zkClient.mkdirs(lock_prefix, nullptr);
         }
 
         std::string path = lock_prefix + "/lock";
@@ -25,7 +25,7 @@ namespace zk {
         spdlog::get("logger")->info("Lock acquired OK");
 
         if(!zkClient.exists(broker_name_prefix)) {
-            zkClient.mkdirs(broker_name_prefix);
+            zkClient.mkdirs(broker_name_prefix, nullptr);
         }
     }
 
@@ -117,9 +117,9 @@ namespace zk {
                     std::string ip_node(prefer_name_node);
                     ip_node.append("/").append(ip);
                     spdlog::get("logger")->debug("Prepare to create IP node: {} as this broker name does not exist or is not yet full", ip_node);
-                    zkClient.mkdirs(ip_node);
+                    std::string nodeJsonText = getNodeTextValue();
+                    zkClient.mkdirs(ip_node, nodeJsonText.c_str());
                     spdlog::get("logger")->debug("Create IP node: {} OK", ip_node);
-                    zkClient.set(ip_node, getNodeTextValue());
                     return prefer_name;
                 }
             }
@@ -165,11 +165,9 @@ namespace zk {
 
             spdlog::get("logger")->debug("New IP node path: {}", ip_node_path);
             spdlog::get("logger")->debug("Prepare to create node: {}", ip_node_path);
-            zkClient.mkdirs(ip_node_path);
+            std::string nodeJsonText = getNodeTextValue();
+            zkClient.mkdirs(ip_node_path, nodeJsonText.c_str());
             spdlog::get("logger")->debug("Create node: {} OK", ip_node_path);
-
-            zkClient.set(ip_node_path, getNodeTextValue());
-            spdlog::get("logger")->debug("Update IP node content OK");
         }
 
         return broker_name;

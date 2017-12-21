@@ -7,6 +7,7 @@
 #include <string>
 #include <mutex>
 #include <condition_variable>
+#include <cstring>
 #include <zookeeper/zookeeper.h>
 #include "spdlog/spdlog.h"
 
@@ -20,7 +21,7 @@ namespace zk {
 
         bool rm(const std::string &path);
 
-        void mkdirs(const std::string& path);
+        void mkdirs(const std::string& path, const char* data);
 
         bool exists(const std::string& path);
 

@@ -89,7 +89,7 @@ namespace zk {
         throw -1;
     }
 
-    std::string BrokerNameAllocator::acquire(const std::string &ip, int span, const std::string &prefer_name, int minIndex) {
+    std::string BrokerNameAllocator::acquire(const std::string &ip, unsigned int span, const std::string &prefer_name, int minIndex) {
 
         spdlog::get("logger")->debug("Try to acquire a new broker name. IP: {}, span: {}, preferName: {}, minIndex: {}",
                                      ip, span, prefer_name, minIndex);

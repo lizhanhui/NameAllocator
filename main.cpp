@@ -62,9 +62,9 @@ int main(int argc, char* argv[]) {
 
     const std::string zk_address = build_zk_address();
 
-    int span = 2;
+    unsigned long span = 2;
     if (argc >= 2) {
-        span = std::stoi(std::string(argv[1]));
+        span = std::stoul(std::string(argv[1]));
     }
 
     const std::string brokerNamePrefix("/mq/brokerNames");
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
         if (properties.has(key)) {
             broker_name = properties.get(key);
             if (zk::BrokerNameAllocator::valid(broker_name)) {
-                std::string allocated_broker_name = brokerNameAllocator.acquire(ip, span, broker_name);
+                std::string allocated_broker_name = brokerNameAllocator.acquire(ip, static_cast<unsigned int>(span), broker_name);
                 if (allocated_broker_name == broker_name) {
                     rotatingLog->info("Preferred broker name is accepted and registered to ZooKeeper");
                 } else {
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
 
     if (!okay) {
         const std::string preferred_broker_name;
-        broker_name = brokerNameAllocator.acquire(ip, span, preferred_broker_name);
+        broker_name = brokerNameAllocator.acquire(ip, static_cast<unsigned int>(span), preferred_broker_name);
         okay = true;
     }
 

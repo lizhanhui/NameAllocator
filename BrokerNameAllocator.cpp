@@ -139,7 +139,10 @@ namespace zk {
                         create = false;
                         std::string ip_node_path(name_node);
                         ip_node_path.append("/").append(ip);
-                        zkClient.mkdir(ip_node_path, ip);
+                        const std::string nodeJsonText = getNodeTextValue();
+                        spdlog::get("logger")->info("IP node JSON text: {}", nodeJsonText);
+                        zkClient.mkdir(ip_node_path, nodeJsonText);
+                        spdlog::get("logger")->info("Create IP node OK using existing broker name: {}", broker_name_it);
                         broker_name = broker_name_it;
                         break;
                     }

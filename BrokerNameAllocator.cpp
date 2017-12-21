@@ -118,6 +118,7 @@ namespace zk {
                     ip_node.append("/").append(ip);
                     spdlog::get("logger")->debug("Prepare to create IP node: {} as this broker name does not exist or is not yet full", ip_node);
                     std::string nodeJsonText = getNodeTextValue();
+                    spdlog::get("logger")->info("Node Text: {}", nodeJsonText);
                     zkClient.mkdirs(ip_node, nodeJsonText.c_str());
                     spdlog::get("logger")->debug("Create IP node: {} OK", ip_node);
                     return prefer_name;
@@ -166,6 +167,7 @@ namespace zk {
             spdlog::get("logger")->debug("New IP node path: {}", ip_node_path);
             spdlog::get("logger")->debug("Prepare to create node: {}", ip_node_path);
             std::string nodeJsonText = getNodeTextValue();
+            spdlog::get("logger")->info("Node text: {}", nodeJsonText);
             zkClient.mkdirs(ip_node_path, nodeJsonText.c_str());
             spdlog::get("logger")->debug("Create node: {} OK", ip_node_path);
         }
